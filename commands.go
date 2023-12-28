@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/yuisofull/pokedexcli/pokeapi"
 	"os"
 )
 
@@ -23,7 +24,41 @@ func getCommands() map[string]cliCommand {
 			description: "Exit the Pokedex",
 			callback:    commandExit,
 		},
+		"map": {
+			name:        "map",
+			description: "displays the next names of 20 location areas",
+			callback:    commandMap,
+		},
+		"mapb": {
+			name:        "mapb",
+			description: "displays the previous names of 20 location areas",
+			callback:    commandMapBack,
+		},
 	}
+}
+
+func commandMapBack() error {
+	la, err := pokeapi.GetPreviousLocationArea()
+	if err != nil {
+		//fmt.Println("Cannot get the previous location area")
+		return err
+	}
+	for _, location := range la.Results {
+		fmt.Println(*location.Name)
+	}
+	return nil
+}
+
+func commandMap() error {
+	la, err := pokeapi.GetNextLocationArea()
+	if err != nil {
+		//fmt.Println("Cannot get the next location area")
+		return err
+	}
+	for _, location := range la.Results {
+		fmt.Println(*location.Name)
+	}
+	return nil
 }
 
 func commandExit() error {

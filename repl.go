@@ -19,7 +19,6 @@ func startRepl() {
 		}
 
 		commandName := words[0]
-
 		command, exists := getCommands()[commandName]
 		if exists {
 			err := command.callback()
