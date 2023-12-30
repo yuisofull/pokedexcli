@@ -9,7 +9,7 @@ import (
 type cliCommand struct {
 	name        string
 	description string
-	callback    func() error
+	callback    func(cfg *config) error
 }
 
 func getCommands() map[string]cliCommand {
@@ -37,8 +37,8 @@ func getCommands() map[string]cliCommand {
 	}
 }
 
-func commandMapBack() error {
-	la, err := pokeapi.GetPreviousLocationArea()
+func commandMapBack(cfg *config) error {
+	la, err := pokeapi.GetPreviousLocationArea(&cfg.pokeapiClient)
 	if err != nil {
 		//fmt.Println("Cannot get the previous location area")
 		return err
@@ -49,8 +49,8 @@ func commandMapBack() error {
 	return nil
 }
 
-func commandMap() error {
-	la, err := pokeapi.GetNextLocationArea()
+func commandMap(cfg *config) error {
+	la, err := pokeapi.GetNextLocationArea(&cfg.pokeapiClient)
 	if err != nil {
 		//fmt.Println("Cannot get the next location area")
 		return err
@@ -61,12 +61,12 @@ func commandMap() error {
 	return nil
 }
 
-func commandExit() error {
+func commandExit(cfg *config) error {
 	os.Exit(0)
 	return nil
 }
 
-func commandHelp() error {
+func commandHelp(cfg *config) error {
 	fmt.Println()
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Println("Usage:")

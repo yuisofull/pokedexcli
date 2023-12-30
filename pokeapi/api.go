@@ -20,24 +20,25 @@ type locationArea struct {
 
 var currentLocationArea locationArea
 
-func GetPreviousLocationArea() (locationArea, error) {
-	err := currentLocationArea.getPreviousLocationArea()
+func GetPreviousLocationArea(client *Client) (locationArea, error) {
+	err := currentLocationArea.getPreviousLocationArea(client)
 	return currentLocationArea, err
 }
 
-func GetNextLocationArea() (locationArea, error) {
+func GetNextLocationArea(client *Client) (locationArea, error) {
 	if currentLocationArea.Next == nil && currentLocationArea.Previous == nil {
-		currentLocationArea.getNewLocationArea()
+		currentLocationArea.getNewLocationArea(client)
 		return currentLocationArea, nil
 	} else {
-		err := currentLocationArea.getNextLocationArea()
+		err := currentLocationArea.getNextLocationArea(client)
 		return currentLocationArea, err
 	}
 }
 
-func (la *locationArea) getNewLocationArea() {
+func (la *locationArea) getNewLocationArea(client *Client) {
 
-	res, err := http.Get("https://pokeapi.co/api/v2/location-area")
+	req, err := http.NewRequest("GET", "https://pokeapi.co/api/v2/location-area", nil)
+	res, err := client.httpClient.Do(req)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -56,13 +57,25 @@ func (la *locationArea) getNewLocationArea() {
 	if err = json.Unmarshal(body, &la); err != nil {
 		panic(err)
 	}
+	client.cache.Add("https://pokeapi.co/api/v2/location-area", body)
 }
 
-func (la *locationArea) getNextLocationArea() error {
+func (la *locationArea) getNextLocationArea(client *Client) error {
 	if currentLocationArea.Next == nil {
 		return errors.New("cannot get the previous location area")
 	}
-	res, err := http.Get(*currentLocationArea.Next)
+	next := *(currentLocationArea.Next)
+	if v, found := client.cache.Get(next); found {
+		if err := json.Unmarshal(v, &la); err != nil {
+			return err
+		}
+	}
+
+	req, err := http.NewRequest("GET", next, nil)
+	if err != nil {
+		return err
+	}
+	res, err := client.httpClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -81,14 +94,27 @@ func (la *locationArea) getNextLocationArea() error {
 	if err = json.Unmarshal(body, &la); err != nil {
 		return err
 	}
+	client.cache.Add(next, body)
 	return nil
 }
 
-func (la *locationArea) getPreviousLocationArea() error {
+func (la *locationArea) getPreviousLocationArea(client *Client) error {
 	if currentLocationArea.Previous == nil {
 		return errors.New("cannot get the previous location area")
 	}
-	res, err := http.Get(*currentLocationArea.Previous)
+
+	previous := *(currentLocationArea.Previous)
+	if v, found := client.cache.Get(previous); found {
+		if err := json.Unmarshal(v, &la); err != nil {
+			return err
+		}
+	}
+
+	req, err := http.NewRequest("GET", previous, nil)
+	if err != nil {
+		return err
+	}
+	res, err := client.httpClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -107,5 +133,6 @@ func (la *locationArea) getPreviousLocationArea() error {
 	if err = json.Unmarshal(body, &la); err != nil {
 		return err
 	}
+	client.cache.Add(previous, body)
 	return nil
 }
