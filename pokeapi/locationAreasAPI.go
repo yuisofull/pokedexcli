@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-type locationArea struct {
+type locationAreas struct {
 	Count    int     `json:"count"`
 	Next     *string `json:"next"`
 	Previous *string `json:"previous"`
@@ -18,14 +18,14 @@ type locationArea struct {
 	} `json:"results"`
 }
 
-var currentLocationArea locationArea
+var currentLocationArea locationAreas
 
-func GetPreviousLocationArea(client *Client) (locationArea, error) {
+func GetPreviousLocationArea(client *Client) (locationAreas, error) {
 	err := currentLocationArea.getPreviousLocationArea(client)
 	return currentLocationArea, err
 }
 
-func GetNextLocationArea(client *Client) (locationArea, error) {
+func GetNextLocationArea(client *Client) (locationAreas, error) {
 	if currentLocationArea.Next == nil && currentLocationArea.Previous == nil {
 		currentLocationArea.getNewLocationArea(client)
 		return currentLocationArea, nil
@@ -35,7 +35,7 @@ func GetNextLocationArea(client *Client) (locationArea, error) {
 	}
 }
 
-func (la *locationArea) getNewLocationArea(client *Client) {
+func (la *locationAreas) getNewLocationArea(client *Client) {
 
 	req, err := http.NewRequest("GET", "https://pokeapi.co/api/v2/location-area", nil)
 	res, err := client.httpClient.Do(req)
@@ -60,7 +60,7 @@ func (la *locationArea) getNewLocationArea(client *Client) {
 	client.cache.Add("https://pokeapi.co/api/v2/location-area", body)
 }
 
-func (la *locationArea) getNextLocationArea(client *Client) error {
+func (la *locationAreas) getNextLocationArea(client *Client) error {
 	if currentLocationArea.Next == nil {
 		return errors.New("cannot get the previous location area")
 	}
@@ -98,7 +98,7 @@ func (la *locationArea) getNextLocationArea(client *Client) error {
 	return nil
 }
 
-func (la *locationArea) getPreviousLocationArea(client *Client) error {
+func (la *locationAreas) getPreviousLocationArea(client *Client) error {
 	if currentLocationArea.Previous == nil {
 		return errors.New("cannot get the previous location area")
 	}
