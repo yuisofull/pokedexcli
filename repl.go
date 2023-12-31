@@ -10,6 +10,7 @@ import (
 
 type config struct {
 	pokeapiClient    pokeapi.Client
+	PokeDex          map[string]pokeapi.Pokemon
 	nextLocationsURL *string
 	prevLocationsURL *string
 }

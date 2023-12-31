@@ -2,6 +2,7 @@ package pokeapi
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 )
@@ -38,7 +39,7 @@ type locationAreaInfo struct {
 		Pokemon struct {
 			Name string `json:"name"`
 			URL  string `json:"url"`
-		} `json:"pokemon"`
+		} `json:"Pokemon"`
 		VersionDetails []struct {
 			EncounterDetails []struct {
 				Chance          int   `json:"chance"`
@@ -84,7 +85,7 @@ func GetLocationAreaInfo(client *Client, location string) (*locationAreaInfo, er
 	}
 
 	if err = json.Unmarshal(body, &laInfo); err != nil {
-		return nil, err
+		return nil, errors.New("invalid location area")
 	}
 	client.cache.Add(url, body)
 	return &laInfo, nil

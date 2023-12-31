@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/yuisofull/pokedexcli/pokeapi"
+	"math/rand"
 	"os"
 )
 
@@ -40,8 +41,67 @@ func getCommands() map[string]cliCommand {
 			description: "displays Pokemon's names in a location area. Usage: explore <area_name>",
 			callback:    commandExplore,
 		},
+		"catch": {
+			name:        "catch",
+			description: "catch a pokemon. Usage: catch <pokemon_name>",
+			callback:    commandCatch,
+		},
+		"inspect": {
+			name:        "inspect",
+			description: "inspect a pokemon. Usage: inspect <pokemon_name>",
+			callback:    commandInspect,
+		},
 	}
 }
+
+func commandInspect(cfg *config, param ...string) error {
+	if len(param) == 0 {
+		return errors.New("missing 1 argument. Usage: inspect <pokemon_name>")
+	}
+	if pkm, exist := cfg.PokeDex[param[0]]; !exist {
+		fmt.Println("you have not caught that pokemon")
+		return nil
+	} else {
+		fmt.Printf(`Name: %s
+Height: %d
+Weight: %d
+Stats: 
+`, pkm.Name, pkm.Height, pkm.Weight)
+		for _, stat := range pkm.Stats {
+			fmt.Printf("  -%s: %d\n", stat.Stat.Name, stat.BaseStat)
+		}
+		fmt.Println("Types:")
+		for _, ty := range pkm.Types {
+			fmt.Printf("  -%s\n", ty.Type.Name)
+		}
+	}
+	return nil
+}
+
+func commandCatch(cfg *config, param ...string) error {
+	if len(param) == 0 {
+		return errors.New("missing 1 argument. Usage: catch <pokemon_name>")
+	}
+	if _, exist := cfg.PokeDex[param[0]]; exist {
+		fmt.Println("you have already caught it!")
+		return nil
+	}
+	pkm, err := pokeapi.GetPokemon(&cfg.pokeapiClient, param[0])
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Throwing a Pokeball at %s...\n", param[0])
+	r := rand.Intn(pkm.BaseExperience)
+
+	if r > 40 {
+		fmt.Printf("%s escaped!\n", param[0])
+		return nil
+	}
+	fmt.Printf("%s was caught!\n", param[0])
+	cfg.PokeDex[param[0]] = *pkm
+	return nil
+}
+
 func commandExplore(cfg *config, param ...string) error {
 	if len(param) == 0 {
 		return errors.New("missing 1 argument. Usage: explore <area_name>")
